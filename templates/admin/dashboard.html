@@ -1,0 +1,56 @@
+{% extends "base_admin.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Ringkasan presensi sistem multi face recognition hari ini.</p>
+</div>
+
+<div class="card-grid">
+    <div class="stat-card">
+        <p class="stat-label">Total User Terdaftar</p>
+        <p class="stat-value">{{ total_user }}</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Hadir Hari Ini</p>
+        <p class="stat-value accent-success">{{ hadir_hari_ini }}</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Total Presensi Tercatat</p>
+        <p class="stat-value">{{ total_presensi }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="flex-between mb-16">
+        <h2 style="font-size:16px;">Kehadiran Hari Ini</h2>
+        <a href="{{ url_for('presence.presence_page') }}" class="btn btn-primary">Mulai Presensi</a>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Waktu Tercatat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if daftar_hadir %}
+                    {% for item in daftar_hadir %}
+                    <tr>
+                        <td class="text-mono">{{ item.user_id }}</td>
+                        <td>{{ item.nama }}</td>
+                        <td>{{ item.waktu_terakhir }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="3" class="text-muted">Belum ada user yang presensi hari ini.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

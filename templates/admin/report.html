@@ -1,0 +1,49 @@
+{% extends "base_admin.html" %}
+{% block title %}Laporan Presensi{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Laporan Presensi</h1>
+</div>
+
+<div class="card mb-24">
+    <form method="GET" action="{{ url_for('admin.report_page') }}" class="flex gap-12" style="align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0; flex:1;">
+            <label class="form-label">Tanggal Mulai</label>
+            <input type="date" name="start_date" class="form-input" value="{{ start_date }}">
+        </div>
+        <div class="form-group" style="margin-bottom:0; flex:1;">
+            <label class="form-label">Tanggal Akhir</label>
+            <input type="date" name="end_date" class="form-input" value="{{ end_date }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Terapkan Filter</button>
+        <a href="{{ url_for('admin.export_report', start_date=start_date, end_date=end_date) }}"
+           class="btn btn-secondary">Ekspor .csv</a>
+    </form>
+</div>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Nama</th>
+                <th>Similarity Score</th>
+                <th>Waktu</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td class="text-mono">{{ row.user_id }}</td>
+                <td>{{ row.nama }}</td>
+                <td class="text-mono">{{ "%.4f"|format(row.scoreSimilarity) }}</td>
+                <td>{{ row.waktuPresensi }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted">Tidak ada data presensi pada rentang ini.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

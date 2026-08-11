@@ -1,0 +1,40 @@
+{% extends "base_admin.html" %}
+{% block title %}Presensi{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1 class="page-title">Presensi Multi Wajah</h1>
+    </div>
+    <div class="flex gap-8">
+        <span id="session-status" class="badge badge-neutral">Sesi belum dimulai</span>
+    </div>
+</div>
+
+<div class="card mb-24">
+    <div class="flex gap-12">
+        <button id="btn-start-session" class="btn btn-primary">Mulai Sesi Presensi</button>
+        <button id="btn-stop-session" class="btn btn-secondary" disabled>Hentikan Sesi</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="camera-wrapper" style="position:relative; max-width:960px;">
+        <video id="camera-feed" autoplay playsinline
+               style="background:#000; border-radius:10px; width:100%; display:block;"></video>
+        <canvas id="overlay-canvas"
+                style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+        <canvas id="capture-canvas" style="display:none;"></canvas>
+    </div>
+</div>
+
+<div class="card" style="margin-top:24px;">
+    <h2 style="font-size:16px; margin-bottom:12px;">Hasil Deteksi Frame Terakhir</h2>
+    <div id="detection-list" class="text-muted">Belum ada deteksi.</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+<script src="{{ url_for('static', filename='js/presence.js') }}"></script>
+{% endblock %}

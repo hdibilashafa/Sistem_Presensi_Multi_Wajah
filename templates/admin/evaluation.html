@@ -1,0 +1,125 @@
+{% extends "base_admin.html" %}
+{% block title %}Evaluasi ROC{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Evaluasi & Penentuan Threshold</h1>
+    <p class="page-subtitle">Analisis kurva ROC untuk menentukan nilai threshold optimal pencocokan wajah.</p>
+</div>
+
+<div class="card-grid">
+    <div class="stat-card">
+        <p class="stat-label">Threshold Aktif</p>
+        <p class="stat-value" id="current-threshold-display">{{ current_threshold }}</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Data Genuine</p>
+        <p class="stat-value" id="total-genuine-display">{{ total_genuine }}</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Data Impostor</p>
+        <p class="stat-value" id="total-impostor-display">{{ total_impostor }}</p>
+    </div>
+</div>
+
+<div class="card mb-24">
+    <h2 style="font-size:16px; margin-bottom:8px;">Ambil Data via Kamera (Otomatis)</h2>
+
+    <div class="form-group" style="max-width:420px; margin-top:16px;">
+        <label class="form-label">Siapa yang sedang berdiri di depan kamera?</label>
+        <select id="select-true-identity" class="form-input">
+            <option value="">-- Tidak Terdaftar (semua hasil = impostor) --</option>
+            {% for u in registered_users %}
+            <option value="{{ u.id }}">{{ u.id }} &mdash; {{ u.nama }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="camera-wrapper" style="position:relative; max-width:480px; margin-top:12px;">
+        <video id="eval-camera-feed" autoplay playsinline
+               style="background:#000; border-radius:10px; width:100%; display:block;"></video>
+        <canvas id="eval-capture-canvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="flex gap-12" style="margin-top:16px;">
+        <button class="btn btn-secondary" id="btn-eval-camera-start">Aktifkan Kamera</button>
+        <button class="btn btn-primary" id="btn-eval-capture" disabled>Ambil &amp; Proses Wajah Ini</button>
+    </div>
+
+    <div id="eval-capture-result" style="margin-top:16px;"></div>
+</div>
+
+<div class="card mb-24">
+    <div class="flex-between mb-16">
+        <h2 style="font-size:16px;">Daftar Data yang Sudah Dimasukkan</h2>
+        <button class="btn btn-secondary" id="btn-reset-scores">Reset Data</button>
+    </div>
+    <div class="flex gap-12" style="align-items:flex-start;">
+        <div style="flex:1;">
+            <p class="text-muted" style="font-size:13px; margin-bottom:8px;">
+                Genuine (<span id="count-genuine">0</span>)
+            </p>
+            <div id="list-genuine" class="score-list"></div>
+        </div>
+        <div style="flex:1;">
+            <p class="text-muted" style="font-size:13px; margin-bottom:8px;">
+                Impostor (<span id="count-impostor">0</span>)
+            </p>
+            <div id="list-impostor" class="score-list"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-24">
+    <div class="flex-between mb-16">
+        <h2 style="font-size:16px;">Analisis Kurva ROC</h2>
+        <button class="btn btn-primary" id="btn-run-analysis">Jalankan Analisis</button>
+    </div>
+    <div id="roc-result" class="text-muted">Belum ada hasil analisis.</div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .score-list {
+        max-height: 260px;
+        overflow-y: auto;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        background: var(--gray-50);
+    }
+    .score-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    .score-item:last-child { border-bottom: none; }
+    .score-item-remove {
+        cursor: pointer;
+        color: var(--danger);
+        font-size: 12px;
+        font-family: var(--font-body);
+        font-weight: 600;
+    }
+    .score-list-empty {
+        padding: 16px;
+        text-align: center;
+        color: var(--gray-400);
+        font-size: 13px;
+        font-family: var(--font-body);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.INITIAL_GENUINE_SCORES = {{ genuine_scores|tojson }};
+    window.INITIAL_IMPOSTOR_SCORES = {{ impostor_scores|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+<script src="{{ url_for('static', filename='js/evaluation.js') }}"></script>
+{% endblock %}

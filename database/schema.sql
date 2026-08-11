@@ -1,0 +1,34 @@
+CREATE DATABASE IF NOT EXISTS presensi_multiwajah_jarakjauh;
+USE presensi_multiwajah_jarakjauh;
+
+CREATE TABLE IF NOT EXISTS user (
+    id VARCHAR(8) PRIMARY KEY,
+    nama VARCHAR(100) NOT NULL,
+    waktuRegistrasi DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS fiturWajah (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(8) NOT NULL,
+    fiturWajah LONGTEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS presensi (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(8) NOT NULL,
+    scoreSimilarity FLOAT NOT NULL,
+    waktuPresensi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sistemConfig (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    configKey VARCHAR(50) NOT NULL UNIQUE,
+    configValue VARCHAR(255) NOT NULL,
+    waktuUpdate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO sistemConfig (configKey, configValue)
+VALUES ('threshold', '0.5')
+ON DUPLICATE KEY UPDATE configValue = configValue;

@@ -1,0 +1,205 @@
+{% extends "base_admin.html" %}
+{% block title %}Registrasi{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Registrasi Wajah User</h1>
+</div>
+
+<!-- STEP 1: Form Identitas -->
+<div id="step-identity" class="card mb-24">
+    <h2 style="font-size:16px; margin-bottom:16px;">1. Masukkan Identitas User</h2>
+    <div class="form-group">
+        <label class="form-label">ID (8 digit angka)</label>
+        <input type="text" id="input-id" class="form-input" maxlength="8" inputmode="numeric"
+               placeholder="Contoh: 20240001">
+    </div>
+    <div class="form-group">
+        <label class="form-label">Nama Lengkap</label>
+        <input type="text" id="input-nama" class="form-input" placeholder="Contoh: Nabil Ahmad">
+    </div>
+    <button id="btn-start" class="btn btn-primary">Mulai Registrasi</button>
+</div>
+
+<!-- STEP 2: Kamera & Capture (layout besar, mudah dibaca dari jarak jauh) -->
+<div id="step-capture" class="card mb-24" style="display:none; padding:16px;">
+    <div class="flex-between mb-16">
+        <h2 style="font-size:16px;">Pengambilan Foto Wajah</h2>
+        <div class="flex gap-8">
+            <span id="capture-progress" class="badge badge-neutral">0 / {{ total_photos }}</span>
+            <button id="btn-cancel" class="btn btn-danger">Batalkan Registrasi</button>
+        </div>
+    </div>
+
+    <div class="camera-stage">
+        <video id="camera-feed" autoplay playsinline class="camera-stage-video"></video>
+        <canvas id="capture-canvas" style="display:none;"></canvas>
+
+        <!-- Panduan jarak: pita besar di bagian atas video, kebaca dari jauh -->
+        <div class="distance-banner">
+            <span class="distance-banner-label">JARAK</span>
+            <span class="distance-banner-value" id="current-distance">1.00 m</span>
+        </div>
+
+        <!-- Panduan ekspresi: panel besar di bagian bawah video -->
+        <div class="expression-banner">
+            <div class="expression-banner-icon" id="expression-icon">🙂</div>
+            <div class="expression-banner-text">
+                <p class="expression-banner-name" id="current-expression">netral</p>
+                <p class="expression-banner-hint" id="expression-hint">Tatap kamera dengan wajah rileks, tanpa ekspresi berlebihan.</p>
+            </div>
+        </div>
+
+        <!-- Overlay countdown angka besar di tengah video -->
+        <div id="countdown-overlay" class="countdown-overlay" style="display:none;">
+            <span id="countdown-number">3</span>
+        </div>
+    </div>
+
+    <button id="btn-capture" class="btn btn-success btn-capture-large">
+        Mulai Jarak Ini (atau tekan tombol S)
+    </button>
+    <p class="text-muted" style="font-size:13px; margin-top:10px; text-align:center;">
+        Tekan sekali untuk memulai 7 ekspresi pada jarak ini secara otomatis berturut-turut, masing-masing diawali hitung mundur.
+    </p>
+</div>
+
+<!-- STEP 3: Hasil Pemrosesan -->
+<div id="step-result" class="card" style="display:none;">
+    <h2 style="font-size:16px; margin-bottom:16px;">3. Hasil Pemrosesan</h2>
+    <div id="result-content"></div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Panggung kamera: video mengisi seluruh lebar yang tersedia,
+       tinggi proporsional, supaya wajah & panduan kebaca jelas
+       meskipun user berdiri jauh dari layar (sampai 3 meter). */
+    .camera-stage {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #000;
+    }
+
+    .camera-stage-video {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        display: block;
+        object-fit: cover;
+        background: #000;
+    }
+
+    .distance-banner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(180deg, rgba(11,31,58,0.92) 0%, rgba(11,31,58,0) 100%);
+        padding: 24px 28px 48px 28px;
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+    }
+
+    .distance-banner-label {
+        font-family: var(--font-body);
+        font-size: 16px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.65);
+        letter-spacing: 0.08em;
+    }
+
+    .distance-banner-value {
+        font-family: var(--font-display);
+        font-size: 48px;
+        font-weight: 700;
+        color: var(--white);
+        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    }
+
+    .expression-banner {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(0deg, rgba(11,31,58,0.92) 0%, rgba(11,31,58,0) 100%);
+        padding: 56px 28px 24px 28px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .expression-banner-icon {
+        font-size: 64px;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .expression-banner-name {
+        font-family: var(--font-display);
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--white);
+        text-transform: capitalize;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    }
+
+    .expression-banner-hint {
+        font-size: 14px;
+        color: rgba(255,255,255,0.85);
+        margin-top: 4px;
+        max-width: 600px;
+    }
+
+    .countdown-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(11, 31, 58, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #countdown-number {
+        font-family: var(--font-display);
+        font-size: 160px;
+        font-weight: 700;
+        color: var(--white);
+        text-shadow: 0 6px 30px rgba(0,0,0,0.5);
+    }
+
+    .btn-capture-large {
+        width: 100%;
+        max-width: 1100px;
+        display: block;
+        margin: 18px auto 0 auto;
+        font-size: 17px;
+        padding: 16px 24px;
+    }
+
+    @media (max-width: 768px) {
+        .distance-banner-value { font-size: 32px; }
+        .expression-banner-icon { font-size: 44px; }
+        .expression-banner-name { font-size: 22px; }
+        #countdown-number { font-size: 96px; }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.REGISTRATION_CONFIG = {
+        distances: {{ distances|tojson }},
+        expressions: {{ expressions|tojson }},
+        totalPhotos: {{ total_photos }}
+    };
+</script>
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+<script src="{{ url_for('static', filename='js/registration.js') }}"></script>
+{% endblock %}

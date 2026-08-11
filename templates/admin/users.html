@@ -1,0 +1,58 @@
+{% extends "base_admin.html" %}
+{% block title %}Data User{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1 class="page-title">Data User</h1>
+        <p class="page-subtitle">Kelola identitas user yang terdaftar pada sistem.</p>
+    </div>
+    <a href="{{ url_for('registration.registration_page') }}" class="btn btn-primary">+ Registrasi User Baru</a>
+</div>
+
+<div class="card mb-24">
+    <input type="text" id="search-input" class="form-input" placeholder="Cari berdasarkan nama atau ID...">
+</div>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Status Wajah</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="user-table-body">
+            {% for u in users %}
+            <tr data-user-id="{{ u.id }}">
+                <td class="text-mono">{{ u.id }}</td>
+                <td>
+                    <span class="view-mode">{{ u.nama }}</span>
+                    <input type="text" class="form-input edit-mode" style="display:none;" value="{{ u.nama }}">
+                </td>
+                <td>
+                    {% if u.punya_embedding %}
+                        <span class="badge badge-success">Wajah Terdaftar</span>
+                    {% else %}
+                        <span class="badge badge-neutral">Belum Ada Wajah</span>
+                    {% endif %}
+                </td>
+                <td class="flex gap-8">
+                    <button class="btn btn-secondary btn-edit">Ubah</button>
+                    <button class="btn btn-secondary btn-save" style="display:none;">Simpan</button>
+                    <button class="btn btn-danger btn-delete">Hapus</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted">Belum ada user terdaftar.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+{% endblock %}

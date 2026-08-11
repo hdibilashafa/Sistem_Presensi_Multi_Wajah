@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Status Kehadiran{% endblock %} | FaceAttend</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar sidebar-user">
+            <div class="sidebar-brand">
+                <span class="brand-mark">FA</span>
+                <span class="brand-name">FaceAttend</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <p class="nav-section-label">User</p>
+                <a href="{{ url_for('user.status_page') }}" class="nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Status Kehadiran
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Multi Face Recognition</p>
+                <p class="sidebar-footer-sub">Sistem Presensi 2026</p>
+                <p class="sidebar-copyright">&copy; Nabilah Shafa</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-inner">
+                <div id="realtime-clock" class="realtime-clock"></div>
+                {% if error_message %}
+                    <div class="alert alert-error">{{ error_message }}</div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime_clock.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
